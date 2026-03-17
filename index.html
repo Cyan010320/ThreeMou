@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>构筑选择网页</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f3f4f6;
+      color: #222;
+    }
+    .page {
+      display: flex;
+      min-height: 100vh;
+    }
+    .left-panel {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .right-panel {
+      width: 560px;
+      border-left: 1px solid #ddd;
+      background: #fafafa;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      padding: 16px;
+    }
+    h1, h2, h3 { margin: 0 0 12px; }
+    .sub {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .phase-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .status {
+      font-size: 14px;
+      color: #444;
+      line-height: 1.6;
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      background: #111827;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .tip {
+      font-size: 13px;
+      color: #666;
+      margin-top: 8px;
+    }
+
+    .hero-pool-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      justify-items: center;
+      align-items: start;
+    }
+    .middle-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      justify-items: center;
+      align-items: start;
+    }
+    .choice-grid-hero {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      justify-items: center;
+      align-items: start;
+    }
+    .choice-grid-wide {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      justify-items: center;
+      align-items: start;
+    }
+    .choice-group {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #fcfcfc;
+    }
+    .choice-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+    }
+    .selection-grid-hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(84px, 84px));
+      gap: 10px;
+      justify-content: start;
+    }
+    .selection-grid-wide {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 180px));
+      gap: 10px;
+      justify-content: start;
+    }
+    .img-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .img-card {
+      border-radius: 10px;
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      object-fit: contain;
+      display: block;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-drag: element;
+    }
+    .img-card:active { cursor: grabbing; }
+    .img-card-hero {
+      width: 84px;
+      height: 130px;
+    }
+    .img-card-orange,
+    .img-card-purple {
+      width: 120px;
+      height: 28px;
+    }
+    .img-label {
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+      word-break: break-all;
+      max-width: 120px;
+    }
+    .selectable {
+      position: relative;
+      border-radius: 12px;
+      padding: 4px;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+    .selectable.selected {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+    .select-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(37,99,235,0.95);
+      color: white;
+      font-size: 12px;
+      border-radius: 999px;
+      padding: 2px 8px;
+      z-index: 2;
+    }
+
+    .team-builder {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .team-column {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      background: #fcfcfc;
+      padding: 12px;
+    }
+
+    .team-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .team-hero-slot {
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 240px;
+      margin-bottom: 12px;
+      background: #fff;
+    }
+
+    .team-hero-slot.drag-over,
+    .equip-slot.drag-over {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .slot-placeholder {
+      font-size: 13px;
+      color: #94a3b8;
+      text-align: center;
+      padding: 16px 4px;
+    }
+
+    .equip-row {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .equip-slot {
+      border: 2px dashed #cbd5e1;
+      border-radius: 10px;
+      min-height: 86px;
+      padding: 8px;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mini-label {
+      font-size: 12px;
+      color: #64748b;
+      text-align: center;
+    }
+    @media (max-width: 1200px) {
+      .page { flex-direction: column; }
+      .right-panel {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-left: none;
+        border-top: 1px solid #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="left-panel">
+      <div class="card">
+        <h1>构筑选择流程</h1>
+        <div class="sub">hero 为竖图，orange/purple 为横图。所有图片都可拖动。</div>
+        <div class="status" id="statusText">点击“开始游戏”后进入流程。</div>
+        <div class="toolbar">
+          <button id="startBtn">开始游戏</button>
+          <button id="resetBtn">重置</button>
+        </div>
+        <div class="tip">把真实图片文件名填进下面三个数组里即可。</div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="phase-title">当前选择区</div>
+        <div id="choiceArea"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="phase-title">最终手动选择区</div>
+        <div id="finalPickArea"><div class="sub">流程未到最终阶段。</div></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="phase-title">队伍搭配区</div>
+        <div class="sub">固定流程全部结束后，才可把右侧图片拖到左侧的队伍空槽中。每个队伍 3 个 Hero，每个 Hero 下方 2 个装备槽，可放 Orange / Purple。</div>
+        <div id="teamBuilderArea"><div class="sub">请先完成上方固定构筑流程。</div></div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="card">
+        <h2>1. Hero 初始池</h2>
+        <div class="sub">右上角，随机 4 张，1 行 4 列；后续每满 4 张自动换行</div>
+        <div id="heroPool" class="hero-pool-grid"></div>
+      </div>
+
+      <div class="card">
+        <h2>2. Orange / Purple 初始展示</h2>
+        <div class="sub">右侧居中，2 行 4 列</div>
+        <div id="middleArea" class="middle-grid"></div>
+      </div>
+
+      <div class="card">
+        <h2>状态</h2>
+        <div id="phaseInfo" class="status">未开始</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const HERO_IMAGES = [
+      "hero/ScreenShot_2026-03-17_210618_247.png", 
+"hero/ScreenShot_2026-03-17_210611_455.png", 
+"hero/ScreenShot_2026-03-17_210606_023.png", 
+"hero/ScreenShot_2026-03-17_210559_279.png", 
+"hero/ScreenShot_2026-03-17_210553_759.png", 
+"hero/ScreenShot_2026-03-17_210544_279.png", 
+"hero/ScreenShot_2026-03-17_210525_935.png", 
+"hero/ScreenShot_2026-03-17_210520_672.png", 
+"hero/ScreenShot_2026-03-17_210512_215.png", 
+"hero/ScreenShot_2026-03-17_210503_535.png", 
+"hero/ScreenShot_2026-03-17_210457_662.png", 
+"hero/ScreenShot_2026-03-17_210452_935.png", 
+"hero/ScreenShot_2026-03-17_210447_384.png", 
+"hero/ScreenShot_2026-03-17_210436_727.png", 
+"hero/ScreenShot_2026-03-17_210430_766.png", 
+"hero/ScreenShot_2026-03-17_210425_287.png", 
+"hero/ScreenShot_2026-03-17_210418_335.png", 
+"hero/ScreenShot_2026-03-17_210412_895.png", 
+"hero/ScreenShot_2026-03-17_210405_903.png", 
+"hero/ScreenShot_2026-03-17_210358_887.png", 
+"hero/ScreenShot_2026-03-17_210353_575.png", 
+"hero/ScreenShot_2026-03-17_210347_855.png", 
+"hero/ScreenShot_2026-03-17_210342_127.png", 
+"hero/ScreenShot_2026-03-17_210334_223.png", 
+"hero/ScreenShot_2026-03-17_210328_423.png", 
+"hero/ScreenShot_2026-03-17_210323_303.png", 
+"hero/ScreenShot_2026-03-17_210318_423.png", 
+"hero/ScreenShot_2026-03-17_210313_743.png", 
+"hero/ScreenShot_2026-03-17_210304_567.png", 
+"hero/ScreenShot_2026-03-17_210258_879.png", 
+"hero/ScreenShot_2026-03-17_210252_495.png", 
+"hero/ScreenShot_2026-03-17_210230_279.png", 
+"hero/ScreenShot_2026-03-17_210221_624.png", 
+"hero/ScreenShot_2026-03-17_210215_095.png", 
+"hero/ScreenShot_2026-03-17_210209_752.png", 
+"hero/ScreenShot_2026-03-17_210204_495.png", 
+"hero/ScreenShot_2026-03-17_210158_887.png", 
+"hero/ScreenShot_2026-03-17_210152_239.png", 
+"hero/ScreenShot_2026-03-17_210144_983.png", 
+"hero/ScreenShot_2026-03-17_210139_631.png", 
+"hero/ScreenShot_2026-03-17_210134_672.png", 
+"hero/ScreenShot_2026-03-17_210129_471.png", 
+"hero/ScreenShot_2026-03-17_210124_127.png", 
+"hero/ScreenShot_2026-03-17_210106_176.png", 
+"hero/ScreenShot_2026-03-17_210100_040.png", 
+"hero/ScreenShot_2026-03-17_210049_903.png", 
+"hero/ScreenShot_2026-03-17_210043_552.png", 
+"hero/ScreenShot_2026-03-17_210037_752.png", 
+"hero/ScreenShot_2026-03-17_210023_039.png", 
+"hero/ScreenShot_2026-03-17_210018_136.png", 
+"hero/ScreenShot_2026-03-17_210011_367.png", 
+"hero/ScreenShot_2026-03-17_210006_216.png", 
+"hero/ScreenShot_2026-03-17_210001_776.png", 
+"hero/ScreenShot_2026-03-17_205954_968.png", 
+"hero/ScreenShot_2026-03-17_205949_240.png", 
+"hero/ScreenShot_2026-03-17_205944_328.png", 
+"hero/ScreenShot_2026-03-17_205939_632.png", 
+"hero/ScreenShot_2026-03-17_205933_911.png", 
+"hero/ScreenShot_2026-03-17_205923_871.png", 
+"hero/ScreenShot_2026-03-17_205917_919.png", 
+"hero/ScreenShot_2026-03-17_205912_312.png", 
+"hero/ScreenShot_2026-03-17_205906_912.png", 
+"hero/ScreenShot_2026-03-17_205901_376.png", 
+"hero/ScreenShot_2026-03-17_205850_463.png", 
+"hero/ScreenShot_2026-03-17_205845_440.png", 
+"hero/ScreenShot_2026-03-17_205839_471.png", 
+"hero/ScreenShot_2026-03-17_205833_943.png", 
+"hero/ScreenShot_2026-03-17_205827_959.png", 
+"hero/ScreenShot_2026-03-17_205821_392.png", 
+"hero/ScreenShot_2026-03-17_205815_551.png", 
+"hero/ScreenShot_2026-03-17_205810_640.png", 
+"hero/ScreenShot_2026-03-17_205804_288.png", 
+"hero/ScreenShot_2026-03-17_205758_584.png", 
+"hero/ScreenShot_2026-03-17_205749_111.png", 
+"hero/ScreenShot_2026-03-17_205742_952.png", 
+"hero/ScreenShot_2026-03-17_205737_609.png", 
+"hero/ScreenShot_2026-03-17_205732_584.png", 
+"hero/ScreenShot_2026-03-17_205727_088.png", 
+"hero/ScreenShot_2026-03-17_205718_783.png", 
+"hero/ScreenShot_2026-03-17_205712_991.png", 
+"hero/ScreenShot_2026-03-17_205707_472.png", 
+"hero/ScreenShot_2026-03-17_205658_752.png", 
+"hero/ScreenShot_2026-03-17_205650_248.png", 
+"hero/ScreenShot_2026-03-17_205638_943.png", 
+"hero/ScreenShot_2026-03-17_205632_336.png", 
+"hero/ScreenShot_2026-03-17_205626_744.png", 
+"hero/ScreenShot_2026-03-17_205619_727.png", 
+"hero/ScreenShot_2026-03-17_205602_472.png", 
+"hero/ScreenShot_2026-03-17_210710_839.png", 
+"hero/ScreenShot_2026-03-17_210705_198.png", 
+"hero/ScreenShot_2026-03-17_210700_015.png", 
+"hero/ScreenShot_2026-03-17_210644_823.png", 
+"hero/ScreenShot_2026-03-17_210630_182.png", 
+"hero/ScreenShot_2026-03-17_210623_935.png"
+    ];
+
+    const ORANGE_IMAGES = [
+   "orange/ScreenShot_2026-03-17_211730_925.png", 
+    "orange/ScreenShot_2026-03-17_211736_773.png", 
+    "orange/ScreenShot_2026-03-17_211742_542.png", 
+    "orange/ScreenShot_2026-03-17_211747_941.png", 
+    "orange/ScreenShot_2026-03-17_211753_125.png", 
+    "orange/ScreenShot_2026-03-17_211800_501.png", 
+    "orange/ScreenShot_2026-03-17_211805_661.png", 
+    "orange/ScreenShot_2026-03-17_211821_853.png", 
+    "orange/ScreenShot_2026-03-17_211829_565.png", 
+    "orange/ScreenShot_2026-03-17_211846_358.png", 
+    "orange/ScreenShot_2026-03-17_211854_957.png", 
+    "orange/ScreenShot_2026-03-17_211900_757.png", 
+    "orange/ScreenShot_2026-03-17_211907_349.png", 
+    "orange/ScreenShot_2026-03-17_211911_813.png", 
+    "orange/ScreenShot_2026-03-17_211917_101.png", 
+    "orange/ScreenShot_2026-03-17_211923_261.png", 
+    "orange/ScreenShot_2026-03-17_211929_421.png", 
+    "orange/ScreenShot_2026-03-17_211936_310.png", 
+    "orange/ScreenShot_2026-03-17_211941_293.png", 
+    "orange/ScreenShot_2026-03-17_211946_198.png", 
+    "orange/ScreenShot_2026-03-17_211952_317.png", 
+    "orange/ScreenShot_2026-03-17_211958_133.png", 
+    "orange/ScreenShot_2026-03-17_212003_101.png", 
+    "orange/ScreenShot_2026-03-17_212008_406.png", 
+    "orange/ScreenShot_2026-03-17_212013_045.png", 
+    "orange/ScreenShot_2026-03-17_212019_645.png", 
+    "orange/ScreenShot_2026-03-17_212025_469.png", 
+    "orange/ScreenShot_2026-03-17_212030_885.png", 
+    "orange/ScreenShot_2026-03-17_212036_302.png", 
+    "orange/ScreenShot_2026-03-17_212048_221.png", 
+    "orange/ScreenShot_2026-03-17_212053_940.png", 
+    "orange/ScreenShot_2026-03-17_212058_839.png", 
+    "orange/ScreenShot_2026-03-17_212103_444.png", 
+    "orange/ScreenShot_2026-03-17_212108_909.png", 
+    "orange/ScreenShot_2026-03-17_212114_445.png", 
+    "orange/ScreenShot_2026-03-17_212128_637.png", 
+    "orange/ScreenShot_2026-03-17_212134_238.png", 
+    "orange/ScreenShot_2026-03-17_212139_078.png", 
+    "orange/ScreenShot_2026-03-17_212143_692.png", 
+    "orange/ScreenShot_2026-03-17_212147_885.png", 
+    "orange/ScreenShot_2026-03-17_212153_141.png", 
+    "orange/ScreenShot_2026-03-17_212200_108.png", 
+    "orange/ScreenShot_2026-03-17_212204_934.png", 
+    "orange/ScreenShot_2026-03-17_212209_916.png", 
+    "orange/ScreenShot_2026-03-17_212214_285.png", 
+    "orange/ScreenShot_2026-03-17_212220_372.png", 
+    "orange/ScreenShot_2026-03-17_212225_540.png", 
+    "orange/ScreenShot_2026-03-17_212231_197.png", 
+    "orange/ScreenShot_2026-03-17_212236_797.png", 
+    "orange/ScreenShot_2026-03-17_212241_564.png", 
+    "orange/ScreenShot_2026-03-17_212245_861.png", 
+    "orange/ScreenShot_2026-03-17_212250_476.png", 
+    "orange/ScreenShot_2026-03-17_212255_956.png", 
+    "orange/ScreenShot_2026-03-17_212317_541.png", 
+    "orange/ScreenShot_2026-03-17_212322_900.png", 
+    "orange/ScreenShot_2026-03-17_212328_125.png", 
+    "orange/ScreenShot_2026-03-17_212332_700.png", 
+    "orange/ScreenShot_2026-03-17_212339_572.png", 
+    "orange/ScreenShot_2026-03-17_212345_204.png", 
+    "orange/ScreenShot_2026-03-17_212351_948.png", 
+    "orange/ScreenShot_2026-03-17_212357_403.png", 
+    "orange/ScreenShot_2026-03-17_212402_189.png", 
+    "orange/ScreenShot_2026-03-17_212406_204.png", 
+    "orange/ScreenShot_2026-03-17_212411_332.png", 
+    "orange/ScreenShot_2026-03-17_212416_029.png", 
+    "orange/ScreenShot_2026-03-17_212422_908.png", 
+    "orange/ScreenShot_2026-03-17_212428_916.png", 
+    "orange/ScreenShot_2026-03-17_212434_453.png", 
+    "orange/ScreenShot_2026-03-17_212438_781.png", 
+    "orange/ScreenShot_2026-03-17_212443_812.png", 
+    "orange/ScreenShot_2026-03-17_212449_125.png", 
+    "orange/ScreenShot_2026-03-17_212501_549.png", 
+    "orange/ScreenShot_2026-03-17_212506_948.png", 
+    "orange/ScreenShot_2026-03-17_212511_403.png", 
+    "orange/ScreenShot_2026-03-17_212516_125.png", 
+    "orange/ScreenShot_2026-03-17_212522_748.png", 
+    "orange/ScreenShot_2026-03-17_212527_324.png", 
+    "orange/ScreenShot_2026-03-17_212533_203.png", 
+    "orange/ScreenShot_2026-03-17_212538_501.png", 
+    "orange/ScreenShot_2026-03-17_212543_215.png", 
+    "orange/ScreenShot_2026-03-17_212548_660.png", 
+    "orange/ScreenShot_2026-03-17_212553_396.png", 
+    "orange/ScreenShot_2026-03-17_212557_963.png", 
+    "orange/ScreenShot_2026-03-17_212602_717.png", 
+    "orange/ScreenShot_2026-03-17_212607_420.png", 
+    "orange/ScreenShot_2026-03-17_212611_667.png", 
+    "orange/ScreenShot_2026-03-17_212616_843.png", 
+    "orange/ScreenShot_2026-03-17_212621_795.png", 
+    "orange/ScreenShot_2026-03-17_212627_285.png", 
+    "orange/ScreenShot_2026-03-17_212634_021.png", 
+    "orange/ScreenShot_2026-03-17_212638_228.png", 
+    "orange/ScreenShot_2026-03-17_211723_797.png"    ];
+
+    const PURPLE_IMAGES = [
+   "purple/ScreenShot_2026-03-17_212713_060.png", 
+    "purple/ScreenShot_2026-03-17_212718_548.png", 
+    "purple/ScreenShot_2026-03-17_212724_180.png", 
+    "purple/ScreenShot_2026-03-17_212729_340.png", 
+    "purple/ScreenShot_2026-03-17_212735_003.png", 
+    "purple/ScreenShot_2026-03-17_212739_581.png", 
+    "purple/ScreenShot_2026-03-17_212743_843.png", 
+    "purple/ScreenShot_2026-03-17_212749_012.png", 
+    "purple/ScreenShot_2026-03-17_212758_988.png", 
+    "purple/ScreenShot_2026-03-17_212804_029.png", 
+    "purple/ScreenShot_2026-03-17_212808_548.png", 
+    "purple/ScreenShot_2026-03-17_212812_925.png", 
+    "purple/ScreenShot_2026-03-17_212816_787.png", 
+    "purple/ScreenShot_2026-03-17_212821_556.png", 
+    "purple/ScreenShot_2026-03-17_212827_013.png", 
+    "purple/ScreenShot_2026-03-17_212834_836.png", 
+    "purple/ScreenShot_2026-03-17_212840_540.png", 
+    "purple/ScreenShot_2026-03-17_212845_092.png", 
+    "purple/ScreenShot_2026-03-17_212850_499.png", 
+    "purple/ScreenShot_2026-03-17_212855_956.png", 
+    "purple/ScreenShot_2026-03-17_212901_532.png", 
+    "purple/ScreenShot_2026-03-17_212906_932.png", 
+    "purple/ScreenShot_2026-03-17_212912_003.png", 
+    "purple/ScreenShot_2026-03-17_212918_092.png", 
+    "purple/ScreenShot_2026-03-17_212922_844.png", 
+    "purple/ScreenShot_2026-03-17_212927_571.png", 
+    "purple/ScreenShot_2026-03-17_212932_725.png", 
+    "purple/ScreenShot_2026-03-17_212938_043.png", 
+    "purple/ScreenShot_2026-03-17_212942_131.png", 
+    "purple/ScreenShot_2026-03-17_212946_523.png", 
+    "purple/ScreenShot_2026-03-17_212706_036.png"    ];
+
+    const state = {
+      heroPool: [],
+      orangePool: [],
+      purpleShow: [],
+      phase: "idle",
+      heroChooseRound: 0,
+      orangeChooseRound: 0,
+      orangePickInCurrentRound: 0,
+      currentChoiceGroups: [],
+      used: {
+        hero: new Set(),
+        orange: new Set(),
+        purple: new Set()
+      },
+      finalManual: {
+        heroSelected: null,
+        orangeSelected: []
+      },
+      teams: []
+    };
+
+    const PHASES = {
+      IDLE: "idle",
+      HERO_CHOOSE_1: "hero_choose_1",
+      ORANGE_CHOOSE_1: "orange_choose_1",
+      HERO_CHOOSE_2: "hero_choose_2",
+      ORANGE_CHOOSE_2: "orange_choose_2",
+      FINAL_PICK: "final_pick",
+      DONE: "done"
+    };
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function pickRandomUnique(pool, count, usedSet) {
+      const candidates = pool.filter(x => !usedSet.has(x));
+      if (candidates.length < count) {
+        throw new Error(`可选图片不足，需要 ${count} 张，剩余 ${candidates.length} 张`);
+      }
+      const result = shuffle(candidates).slice(0, count);
+      result.forEach(x => usedSet.add(x));
+      return result;
+    }
+
+    function getNeverAppearedImages(pool, usedSet) {
+      return pool.filter(x => !usedSet.has(x));
+    }
+
+    function clearElement(el) {
+      el.innerHTML = "";
+    }
+
+    function getTypeBySrc(src) {
+      if (src.startsWith("hero/")) return "hero";
+      if (src.startsWith("orange/")) return "orange";
+      if (src.startsWith("purple/")) return "purple";
+      return "hero";
+    }
+
+    function createImageCard(src) {
+      const type = getTypeBySrc(src);
+      const wrap = document.createElement("div");
+      wrap.className = "img-wrap";
+      wrap.dataset.src = src;
+      wrap.dataset.type = type;
+      wrap.draggable = true;
+
+      const img = document.createElement("img");
+      img.src = src;
+      img.className = `img-card img-card-${type}`;
+      img.draggable = false;
+      img.alt = src.split("/").pop();
+
+      const label = document.createElement("div");
+      label.className = "img-label";
+      label.textContent = src.split("/").pop();
+
+      wrap.appendChild(img);
+      wrap.appendChild(label);
+
+      wrap.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", src);
+        e.dataTransfer.effectAllowed = "move";
+      });
+
+      return wrap;
+    }
+
+    function setStatus(text) {
+      document.getElementById("statusText").textContent = text;
+    }
+
+    function setPhaseInfo(text) {
+      document.getElementById("phaseInfo").textContent = text;
+    }
+
+    function renderHeroPool() {
+      const el = document.getElementById("heroPool");
+      clearElement(el);
+      state.heroPool.forEach(src => el.appendChild(createImageCard(src)));
+    }
+
+    function renderMiddleArea() {
+      const el = document.getElementById("middleArea");
+      clearElement(el);
+      [...state.orangePool, ...state.purpleShow].forEach(src => el.appendChild(createImageCard(src)));
+    }
+
+    function createPlaceholder(text) {
+      const div = document.createElement("div");
+      div.className = "slot-placeholder";
+      div.textContent = text;
+      return div;
+    }
+
+    function getAvailableHeroSources() {
+      const usedInTeams = new Set();
+      state.teams.forEach(team => team.heroes.forEach(hero => {
+        if (hero.hero) usedInTeams.add(hero.hero);
+      }));
+      return state.heroPool.filter(src => !usedInTeams.has(src));
+    }
+
+    function getAvailableWideSources() {
+      const usedInTeams = new Set();
+      state.teams.forEach(team => team.heroes.forEach(hero => {
+        hero.equips.forEach(eq => {
+          if (eq) usedInTeams.add(eq);
+        });
+      }));
+      return [...state.orangePool, ...state.purpleShow].filter(src => !usedInTeams.has(src));
+    }
+
+    function initTeams() {
+      state.teams = Array.from({ length: 3 }, () => ({
+        heroes: Array.from({ length: 3 }, () => ({
+          hero: null,
+          equips: [null, null]
+        }))
+      }));
+    }
+
+    function enableDropZone(el, onDrop) {
+      el.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        el.classList.add("drag-over");
+      });
+      el.addEventListener("dragleave", () => {
+        el.classList.remove("drag-over");
+      });
+      el.addEventListener("drop", (e) => {
+        e.preventDefault();
+        el.classList.remove("drag-over");
+        const src = e.dataTransfer.getData("text/plain");
+        if (src) onDrop(src);
+      });
+    }
+
+    function renderTeamBuilder() {
+      const container = document.getElementById("teamBuilderArea");
+      clearElement(container);
+
+      if (state.phase !== PHASES.DONE) {
+        container.innerHTML = "<div class='sub'>流程未完成，暂不能自由搭配。</div>";
+        return;
+      }
+
+      const builder = document.createElement("div");
+      builder.className = "team-builder";
+
+      state.teams.forEach((team, teamIndex) => {
+        const teamCol = document.createElement("div");
+        teamCol.className = "team-column";
+
+        const title = document.createElement("div");
+        title.className = "team-title";
+        title.textContent = `队伍 ${teamIndex + 1}`;
+        teamCol.appendChild(title);
+
+        team.heroes.forEach((heroSlot, heroIndex) => {
+          const heroBox = document.createElement("div");
+          heroBox.className = "team-hero-slot";
+
+          if (heroSlot.hero) {
+            heroBox.appendChild(createImageCard(heroSlot.hero));
+          } else {
+            heroBox.appendChild(createPlaceholder(`Hero 槽 ${heroIndex + 1}`));
+          }
+
+          enableDropZone(heroBox, (src) => {
+            if (getTypeBySrc(src) !== "hero") return;
+            if (!getAvailableHeroSources().includes(src)) return;
+            state.teams[teamIndex].heroes[heroIndex].hero = src;
+            renderTeamBuilder();
+          });
+
+          const equipRow = document.createElement("div");
+          equipRow.className = "equip-row";
+
+          heroSlot.equips.forEach((equipSrc, equipIndex) => {
+            const equipBox = document.createElement("div");
+            equipBox.className = "equip-slot";
+
+            if (equipSrc) {
+              equipBox.appendChild(createImageCard(equipSrc));
+            } else {
+              equipBox.appendChild(createPlaceholder(`装备槽 ${equipIndex + 1}`));
+            }
+
+            enableDropZone(equipBox, (src) => {
+              const type = getTypeBySrc(src);
+              if (type !== "orange" && type !== "purple") return;
+              if (!heroSlot.hero) return;
+              if (!getAvailableWideSources().includes(src)) return;
+              state.teams[teamIndex].heroes[heroIndex].equips[equipIndex] = src;
+              renderTeamBuilder();
+            });
+
+            heroBox.appendChild(equipBox);
+          });
+
+          heroBox.appendChild(equipRow);
+          teamCol.appendChild(heroBox);
+        });
+
+        builder.appendChild(teamCol);
+      });
+
+      container.appendChild(builder);
+
+      const tip = document.createElement("div");
+      tip.className = "tip";
+      tip.textContent = "可从右侧把 Hero 拖到 Hero 槽；把 Orange / Purple 拖到对应 Hero 下方的两个装备槽。每张图只能被放置一次。";
+      container.appendChild(tip);
+    }
+
+    function renderChoiceGroups(groups, onChoose, titleText, type) {
+      const choiceArea = document.getElementById("choiceArea");
+      clearElement(choiceArea);
+
+      const title = document.createElement("div");
+      title.className = "sub";
+      title.textContent = titleText;
+      choiceArea.appendChild(title);
+
+      groups.forEach((group, index) => {
+        const box = document.createElement("div");
+        box.className = "choice-group";
+
+        const header = document.createElement("div");
+        header.className = "phase-title";
+        header.textContent = `第 ${index + 1} 组`;
+        box.appendChild(header);
+
+        const grid = document.createElement("div");
+        grid.className = type === "hero" ? "choice-grid-hero" : "choice-grid-wide";
+        group.forEach(src => grid.appendChild(createImageCard(src)));
+        box.appendChild(grid);
+
+        const actions = document.createElement("div");
+        actions.className = "choice-actions";
+        const btn = document.createElement("button");
+        btn.textContent = "选择";
+        btn.onclick = () => onChoose(group);
+        actions.appendChild(btn);
+        box.appendChild(actions);
+
+        choiceArea.appendChild(box);
+      });
+    }
+
+    function resetState() {
+      state.heroPool = [];
+      state.orangePool = [];
+      state.purpleShow = [];
+      state.phase = PHASES.IDLE;
+      state.heroChooseRound = 0;
+      state.orangeChooseRound = 0;
+      state.orangePickInCurrentRound = 0;
+      state.currentChoiceGroups = [];
+      state.used.hero = new Set();
+      state.used.orange = new Set();
+      state.used.purple = new Set();
+      state.finalManual.heroSelected = null;
+      state.finalManual.orangeSelected = [];
+      state.teams = [];
+
+      renderHeroPool();
+      renderMiddleArea();
+      document.getElementById("choiceArea").innerHTML = "<div class='sub'>尚未开始。</div>";
+      document.getElementById("finalPickArea").innerHTML = "<div class='sub'>流程未到最终阶段。</div>";
+      setStatus("点击“开始游戏”后进入流程。");
+      setPhaseInfo("未开始");
+      renderTeamBuilder();
+    }
+
+    function initGame() {
+      resetState();
+      initTeams();
+      state.heroPool = pickRandomUnique(HERO_IMAGES, 4, state.used.hero);
+      state.orangePool = pickRandomUnique(ORANGE_IMAGES, 4, state.used.orange);
+      state.purpleShow = pickRandomUnique(PURPLE_IMAGES, 4, state.used.purple);
+      renderHeroPool();
+      renderMiddleArea();
+      renderTeamBuilder();
+      state.phase = PHASES.HERO_CHOOSE_1;
+      state.heroChooseRound = 1;
+      setStatus("已完成初始抽取：Hero 4 张；Orange 4 张；Purple 4 张。现在进入第一轮 Hero 选择。");
+      setPhaseInfo("第一轮 Hero 选择");
+      renderHeroChoiceRound();
+    }
+
+    function renderHeroChoiceRound() {
+      const groups = [
+        pickRandomUnique(HERO_IMAGES, 3, state.used.hero),
+        pickRandomUnique(HERO_IMAGES, 3, state.used.hero),
+        pickRandomUnique(HERO_IMAGES, 3, state.used.hero)
+      ];
+      state.currentChoiceGroups = groups;
+      renderChoiceGroups(
+        groups,
+        (selectedGroup) => {
+          state.heroPool.push(...selectedGroup);
+          renderHeroPool();
+          if (state.heroChooseRound === 1) {
+            state.phase = PHASES.ORANGE_CHOOSE_1;
+            state.orangeChooseRound = 1;
+            state.orangePickInCurrentRound = 1;
+            setStatus("已完成第一轮 Hero 选择，选中的 3 张已加入 Hero 池。现在进入第一轮 Orange 选择（第 1 次，共 2 次）。");
+            setPhaseInfo("第一轮 Orange 选择（第 1 次/共 2 次）");
+            renderOrangeChoiceRound();
+          } else {
+            state.phase = PHASES.ORANGE_CHOOSE_2;
+            state.orangeChooseRound = 2;
+            state.orangePickInCurrentRound = 1;
+            setStatus("已完成第二轮 Hero 选择，选中的 3 张已加入 Hero 池。现在进入第二轮 Orange 选择（第 1 次，共 2 次）。");
+            setPhaseInfo("第二轮 Orange 选择（第 1 次/共 2 次）");
+            renderOrangeChoiceRound();
+          }
+        },
+        `Hero 第 ${state.heroChooseRound} 轮：从 3 组中选择 1 组，每组 3 张`,
+        "hero"
+      );
+    }
+
+    function renderOrangeChoiceRound() {
+      const groups = [
+        pickRandomUnique(ORANGE_IMAGES, 3, state.used.orange),
+        pickRandomUnique(ORANGE_IMAGES, 3, state.used.orange),
+        pickRandomUnique(ORANGE_IMAGES, 3, state.used.orange)
+      ];
+      state.currentChoiceGroups = groups;
+      renderChoiceGroups(
+        groups,
+        (selectedGroup) => {
+          state.orangePool.push(...selectedGroup);
+          renderMiddleArea();
+
+          if (state.orangePickInCurrentRound === 1) {
+            state.orangePickInCurrentRound = 2;
+            setStatus(`已完成第 ${state.orangeChooseRound} 轮 Orange 第 1 次选择，选中的 3 张已加入 Orange 池。现在进入第 2 次选择。`);
+            setPhaseInfo(`第 ${state.orangeChooseRound} 轮 Orange 选择（第 2 次/共 2 次）`);
+            renderOrangeChoiceRound();
+            return;
+          }
+
+          if (state.orangeChooseRound === 1) {
+            state.phase = PHASES.HERO_CHOOSE_2;
+            state.heroChooseRound = 2;
+            setStatus("已完成第一轮 Orange 的两次选择，选中的图片已加入 Orange 池。现在进入第二轮 Hero 选择。");
+            setPhaseInfo("第二轮 Hero 选择");
+            renderHeroChoiceRound();
+          } else {
+            state.phase = PHASES.FINAL_PICK;
+            setStatus("已完成两轮 Hero 选择，以及每轮两次的 Orange 选择。现在进入最终手动选择阶段。");
+            setPhaseInfo("最终手动选择");
+            renderFinalPick();
+          }
+        },
+        `Orange 第 ${state.orangeChooseRound} 轮：第 ${state.orangePickInCurrentRound} 次选择，从 3 组中选择 1 组，每组 3 张`,
+        "orange"
+      );
+    }
+
+    function renderFinalPick() {
+      const container = document.getElementById("finalPickArea");
+      clearElement(container);
+
+      const heroCandidates = getNeverAppearedImages(HERO_IMAGES, state.used.hero);
+      const orangeCandidates = getNeverAppearedImages(ORANGE_IMAGES, state.used.orange);
+
+      const heroBox = document.createElement("div");
+      heroBox.className = "choice-group";
+      heroBox.innerHTML = '<div class="phase-title">从 Hero 中手动选择 1 张</div>';
+      const heroGrid = document.createElement("div");
+      heroGrid.className = "selection-grid-hero";
+      heroCandidates.forEach(src => {
+        const item = document.createElement("div");
+        item.className = "selectable";
+        if (state.finalManual.heroSelected === src) {
+          item.classList.add("selected");
+          const badge = document.createElement("div");
+          badge.className = "select-badge";
+          badge.textContent = "已选";
+          item.appendChild(badge);
+        }
+        item.appendChild(createImageCard(src));
+        item.onclick = () => {
+          state.finalManual.heroSelected = src;
+          renderFinalPick();
+        };
+        heroGrid.appendChild(item);
+      });
+      heroBox.appendChild(heroGrid);
+      container.appendChild(heroBox);
+
+      const orangeBox = document.createElement("div");
+      orangeBox.className = "choice-group";
+      orangeBox.innerHTML = '<div class="phase-title">从 Orange 中手动选择 2 张</div>';
+      const orangeGrid = document.createElement("div");
+      orangeGrid.className = "selection-grid-wide";
+      orangeCandidates.forEach(src => {
+        const item = document.createElement("div");
+        item.className = "selectable";
+        const selected = state.finalManual.orangeSelected.includes(src);
+        if (selected) {
+          item.classList.add("selected");
+          const badge = document.createElement("div");
+          badge.className = "select-badge";
+          badge.textContent = "已选";
+          item.appendChild(badge);
+        }
+        item.appendChild(createImageCard(src));
+        item.onclick = () => {
+          const list = state.finalManual.orangeSelected;
+          if (list.includes(src)) {
+            state.finalManual.orangeSelected = list.filter(x => x !== src);
+          } else {
+            if (list.length >= 2) return;
+            state.finalManual.orangeSelected = [...list, src];
+          }
+          renderFinalPick();
+        };
+        orangeGrid.appendChild(item);
+      });
+      orangeBox.appendChild(orangeGrid);
+      container.appendChild(orangeBox);
+
+      const actionBar = document.createElement("div");
+      actionBar.className = "toolbar";
+      const confirmBtn = document.createElement("button");
+      confirmBtn.textContent = "确认最终选择";
+      confirmBtn.disabled = !(state.finalManual.heroSelected && state.finalManual.orangeSelected.length === 2);
+      confirmBtn.onclick = () => {
+        state.heroPool.push(state.finalManual.heroSelected);
+        state.orangePool.push(...state.finalManual.orangeSelected);
+        renderHeroPool();
+        renderMiddleArea();
+        state.phase = PHASES.DONE;
+        setStatus("最终手动选择已完成。Hero 额外加入 1 张，Orange 额外加入 2 张。流程结束。");
+        setPhaseInfo("已完成");
+        renderTeamBuilder();
+      };
+      actionBar.appendChild(confirmBtn);
+      container.appendChild(actionBar);
+
+      const hint = document.createElement("div");
+      hint.className = "tip";
+      hint.textContent = `当前已选：Hero ${state.finalManual.heroSelected ? 1 : 0}/1，Orange ${state.finalManual.orangeSelected.length}/2`;
+      container.appendChild(hint);
+    }
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+      try {
+        initGame();
+      } catch (e) {
+        alert(e.message);
+      }
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", resetState);
+    resetState();
+  </script>
+</body>
+</html>
